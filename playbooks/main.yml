@@ -1,0 +1,44 @@
+---
+- hosts: all
+  become: true
+
+  vars:
+    jenkins_hostname: localhost
+    jenkins_host_ip:  10.0.0.57'
+    tmp: "= 0"
+
+  tasks:
+    - name: Disable Firewall
+      become: yes
+      service: enabled=no state=stopped name=firewalld
+
+    - name: check IPv6
+      command: /sbin/sysctl net.ipv6.conf.all.disable_ipv6
+      register: is_disabled
+      changed_when: false
+
+    - name: Disable IPv6
+      command:  /sbin/sysctl -w net.ipv6.conf.all.disable_ipv6=1
+      when: is_disabled.stdout | regex_search("0")
+
+    - name: check IPv6
+      command: /sbin/sysctl net.ipv6.conf.default.disable_ipv6
+      register: is_disabled
+      changed_when: false
+
+    - name: Disable IPv6
+      command: /sbin/sysctl -w net.ipv6.conf.default.disable_ipv6=1
+      when: is_disabled.stdout | regex_search("0")
+
+    - name: Include java role
+      include_role:  
+        name: geerlingguy.java
+
+    - name: Include jenkins role
+      include_role:  
+        name: geerlingguy.jenkins
+
+  handlers:
+    - name: Reload systemctl
+      become: yes
+      command: /usr/bin/systemctl daemon-reload

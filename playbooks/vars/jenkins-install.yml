@@ -1,0 +1,5 @@
+---
+reboot_wait_secs: 60
+
+jenkins_hostname: jenkins
+jenkins_host_ip:  10.0.0.57
